@@ -1,4 +1,4 @@
-#include <bits/stdc++.h>
+#include <bits/stdc++.h> //Replace this with specfics later
 using namespace std;
 
 class taskList {
@@ -11,6 +11,27 @@ public:
     getline(cin, content);
     map[0] = content;
     cout << endl << "Succesfully added the new task" << endl << endl;
+  }
+
+  void printTasks() {
+    if (map.size() == 0) {
+      cout << "EMPTY" << endl;
+      return;
+    }
+
+    for (const auto &m : map) {
+      cout << "UID:" << m.first << endl << "Content: " << m.second << endl;
+    }
+  }
+
+  void deleteTask() {
+    printTasks();
+    cout << endl << "Please choose the uid of the task to be deleted -> ";
+    int uid;
+    cin >> uid;
+    string content = map[uid];
+    map.erase(uid);
+    cout << endl << "Succesfully deleted task: " << endl << content << endl;
   }
 };
 
@@ -34,7 +55,7 @@ int main() {
     switch (option) {
     case 1:
       cout << endl << "You chose to view your tasks" << endl << endl;
-      // Print the list
+      newTaskList.printTasks();
       break;
     case 2:
       cout << endl << "You chose to add a new task" << endl << endl;
@@ -42,9 +63,7 @@ int main() {
       break;
     case 3:
       cout << endl << "You chose to delete a task" << endl << endl;
-      // Choose uid
-      // Delete the uid from storage
-      // Print confirmation
+      newTaskList.deleteTask();
       break;
     case 4:
       cout << endl << "You chose to edit a task" << endl << endl;
