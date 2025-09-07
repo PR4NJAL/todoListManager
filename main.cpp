@@ -2,7 +2,7 @@
 #include <cstdio>
 using namespace std;
 
-class taskList {
+class TaskList {
 private:
   unordered_map<int, pair<string, bool>> map;
 
@@ -35,11 +35,11 @@ public:
       string filePath = (entry.path()).string();
       ifstream file;
       file.open(filePath);
-      getline(file, map[parseFileName(path)].first);
-      map[parseFileName(path)].second = false; // TODO:Figure this out
+      getline(file, map[parseFileName(filePath)].first);
+      map[parseFileName(filePath)].second = false; // TODO:Figure this out
       file.close();
     }
-  } // NOTE:Meant to read from storage and set the hash map, on a seprate thread
+  } // NOTE:Meant to read from storage and set the hash map, TODO:on a seprate thread
 
   void addTask() {
     cout << "Please type in task -> ";
@@ -96,12 +96,13 @@ public:
     cout << endl << "Please choose the uid of the task to be edited -> ";
     int uid;
     cin >> uid;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
     cout << "Please type in new task content -> ";
     string content;
     getline(cin, content);
 
     ofstream file;
-    file.open("./content/" + to_string(map.size()) +
+    file.open("./content/" + to_string(uid) +
               ".txt"); // NOTE:Have to have content dir prior
     if (!file.is_open())
       cerr << "Error: Unable to open file";
@@ -116,7 +117,7 @@ public:
 };
 
 int main() {
-  taskList newTaskList;
+  TaskList newTaskList;
   newTaskList.bootstrap();
 
   while (1) {
@@ -161,3 +162,4 @@ int main() {
   }
   return 0;
 }
+//TODO:Add Error Handling, Reuse deleted UID, Add specific headers instead, Modularize code instead of mono repo
