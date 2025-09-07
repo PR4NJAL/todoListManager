@@ -1,16 +1,23 @@
 #include <bits/stdc++.h> //Replace this with specfics later
+#include <cstdio>
 using namespace std;
-
-static int uid = 0; // global variable
 
 class taskList {
 private:
   unordered_map<int, pair<string, bool>> map;
 
 public:
-  void bootstrapping() {
-
-  } // meant to read from storage and set the hash map, on a seprate thread
+  void bootstrap() {
+    string path = "./content";
+    for (const auto &entry : filesystem::directory_iterator(path)) {
+      string filePath = (entry.path()).string();
+      ifstream file;
+      file.open(filePath);
+      getline(file, map[0].first); // TODO:Figure out how to read index from
+                                   // path
+      file.close();
+    }
+  } // NOTE:Meant to read from storage and set the hash map, on a seprate thread
 
   void addTask() {
     cout << "Please type in task -> ";
@@ -19,17 +26,16 @@ public:
 
     ofstream file;
     file.open("./content/" + to_string(map.size()) +
-              ".txt"); // Have to have content dir prior
+              ".txt"); // NOTE:Have to have content dir prior
     if (!file.is_open())
       cerr << "Error: Unable to open file";
-    else
+    else {
       file << content;
-
+      map[map.size()].first = content;
+      map[map.size()].second = false;
+      cout << endl << "Succesfully added the new task" << endl << endl;
+    }
     file.close();
-
-    map[map.size()].first = content;
-    map[map.size()].second = false;
-    cout << endl << "Succesfully added the new task" << endl << endl;
   }
 
   void printTasks() {
@@ -50,9 +56,16 @@ public:
     cout << endl << "Please choose the uid of the task to be deleted -> ";
     int uid;
     cin >> uid;
-    string content = map[uid].first;
-    map.erase(uid);
-    cout << endl << "Succesfully deleted task: " << endl << content << endl;
+
+    int status = remove(("./content/" + to_string(uid) + ".txt")
+                            .c_str()); // INFO:This is a C library function
+    if (status != 0)
+      cerr << "Error deleting task";
+    else {
+      string content = map[uid].first;
+      map.erase(uid);
+      cout << endl << "Succesfully deleted task: " << endl << content << endl;
+    }
   }
 
   void editTask() {
@@ -64,14 +77,25 @@ public:
     cout << "Please type in new task content -> ";
     string content;
     getline(cin, content);
-    map[uid].first = content;
-    map[uid].second = false;
-    cout << endl << "Succesfully edited task: " << endl << content << endl;
+
+    ofstream file;
+    file.open("./content/" + to_string(map.size()) +
+              ".txt"); // NOTE:Have to have content dir prior
+    if (!file.is_open())
+      cerr << "Error: Unable to open file";
+    else {
+      file << content;
+      map[uid].first = content;
+      map[uid].second = false;
+      cout << endl << "Succesfully edited task: " << endl << content << endl;
+    }
+    file.close();
   }
 };
 
 int main() {
   taskList newTaskList;
+  newTaskList.bootstrap();
 
   while (1) {
     cout << "TASK MANAGER" << endl
@@ -85,7 +109,7 @@ int main() {
     cout << endl << "Type a valid option number -> ";
     cin >> option;
     cin.ignore(numeric_limits<streamsize>::max(),
-               '\n'); // Clear the input buffer (suggested by AI)
+               '\n'); // INFO:Clear the input buffer (suggested by AI)
 
     switch (option) {
     case 1:
