@@ -6,6 +6,28 @@ class taskList {
 private:
   unordered_map<int, pair<string, bool>> map;
 
+  int parseFileName(string path) { // Isn't this too long???
+    int index = path.length();
+    string returnStr = "";
+    for (index = index - 1; index >= 0; index--) {
+      if (path[index] == '.')
+        break;
+    }
+
+    for (index = index - 1; index >= 0; index--) {
+      if (path[index] != '/')
+        returnStr += path[index];
+      else
+        break;
+    }
+    reverse(returnStr.begin(), returnStr.end());
+    stringstream ss;
+    ss << returnStr;
+    int returnInt = 0;
+    ss >> returnInt;
+    return returnInt;
+  }
+
 public:
   void bootstrap() {
     string path = "./content";
@@ -13,8 +35,8 @@ public:
       string filePath = (entry.path()).string();
       ifstream file;
       file.open(filePath);
-      getline(file, map[0].first); // TODO:Figure out how to read index from
-                                   // path
+      getline(file, map[parseFileName(path)].first);
+      map[parseFileName(path)].second = false; // TODO:Figure this out
       file.close();
     }
   } // NOTE:Meant to read from storage and set the hash map, on a seprate thread
