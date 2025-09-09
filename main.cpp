@@ -29,17 +29,18 @@ private:
   }
 
 public:
-  void bootstrap() {
+  TaskList() { // Formerly bootstrap function
     string path = "./content";
     for (const auto &entry : filesystem::directory_iterator(path)) {
       string filePath = (entry.path()).string();
       ifstream file;
       file.open(filePath);
       getline(file, map[parseFileName(filePath)].first);
-      map[parseFileName(filePath)].second = false; // TODO:Figure this out
+      map[parseFileName(filePath)].second = false;
       file.close();
     }
-  } // NOTE:Meant to read from storage and set the hash map, TODO:on a seprate thread
+  } // NOTE:Meant to read from storage and set the hash map, TODO:on a seprate
+    // thread
 
   void addTask() {
     cout << "Please type in task -> ";
@@ -118,7 +119,6 @@ public:
 
 int main() {
   TaskList newTaskList;
-  newTaskList.bootstrap();
 
   while (1) {
     cout << "TASK MANAGER" << endl
@@ -162,4 +162,5 @@ int main() {
   }
   return 0;
 }
-//TODO:Add Error Handling, Reuse deleted UID, Add specific headers instead, Modularize code instead of mono repo
+// TODO:Add Error Handling, Reuse deleted UID, Add specific headers instead,
+// Modularize code instead of mono repo
