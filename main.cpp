@@ -1,12 +1,13 @@
-#include <bits/stdc++.h> //Replace this with specfics later
+#include <bits/stdc++.h> //TODO:Replace this with specfics later
 #include <cstdio>
 using namespace std;
 
 class TaskList {
 private:
   unordered_map<int, pair<string, bool>> map;
+  priority_queue<int, vector<int>, greater<int>> pq;
 
-  int parseFileName(string path) { // Isn't this too long???
+  int parseFileName(string path) {
     int index = path.length();
     string returnStr = "";
     for (index = index - 1; index >= 0; index--) {
@@ -29,18 +30,29 @@ private:
   }
 
 public:
-  TaskList() { // Formerly bootstrap function
+  TaskList() {
     string path = "./content";
+    set<int> presentUIDs;
+    int maxUID = -1;
+
     for (const auto &entry : filesystem::directory_iterator(path)) {
       string filePath = (entry.path()).string();
-      ifstream file;
-      file.open(filePath);
-      getline(file, map[parseFileName(filePath)].first);
-      map[parseFileName(filePath)].second = false;
+      ifstream file(filePath);
+      int parseIndex = parseFileName(filePath);
+      getline(file, map[parseIndex].first);
+      map[parseIndex].second = false;
       file.close();
+      presentUIDs.insert(parseIndex);
+      if (parseIndex > maxUID)
+        maxUID = parseIndex;
     }
-  } // NOTE:Meant to read from storage and set the hash map, TODO:on a seprate
-    // thread
+
+    for (int i = 0; i <= maxUID; ++i) {
+      if (presentUIDs.find(i) == presentUIDs.end()) {
+        pq.push(i);
+      }
+    }
+  }
 
   void addTask() {
     cout << "Please type in task -> ";
@@ -48,14 +60,23 @@ public:
     getline(cin, content);
 
     ofstream file;
-    file.open("./content/" + to_string(map.size()) +
-              ".txt"); // NOTE:Have to have content dir prior
+    int index = 0;
+
+    if (pq.empty()) {
+      file.open("./content/" + to_string(map.size()) + ".txt");
+      index = map.size();
+    } else {
+      file.open("./content/" + to_string(pq.top()) + ".txt");
+      index = pq.top();
+      pq.pop();
+    }
+
     if (!file.is_open())
       cerr << "Error: Unable to open file";
     else {
       file << content;
-      map[map.size()].first = content;
-      map[map.size()].second = false;
+      map[index].first = content;
+      map[index].second = false;
       cout << endl << "Succesfully added the new task" << endl << endl;
     }
     file.close();
@@ -79,14 +100,20 @@ public:
     cout << endl << "Please choose the uid of the task to be deleted -> ";
     int uid;
     cin >> uid;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-    int status = remove(("./content/" + to_string(uid) + ".txt")
-                            .c_str()); // INFO:This is a C library function
+    if (map.find(uid) == map.end()) {
+      cerr << "Error: UID does not exist." << endl;
+      return;
+    }
+
+    int status = remove(("./content/" + to_string(uid) + ".txt").c_str());
     if (status != 0)
       cerr << "Error deleting task";
     else {
       string content = map[uid].first;
       map.erase(uid);
+      pq.push(uid); // Add to the priority queue
       cout << endl << "Succesfully deleted task: " << endl << content << endl;
     }
   }
@@ -98,13 +125,18 @@ public:
     int uid;
     cin >> uid;
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    if (map.find(uid) == map.end()) {
+      cerr << "Error: UID does not exist." << endl;
+      return;
+    }
+
     cout << "Please type in new task content -> ";
     string content;
     getline(cin, content);
 
     ofstream file;
-    file.open("./content/" + to_string(uid) +
-              ".txt"); // NOTE:Have to have content dir prior
+    file.open("./content/" + to_string(uid) + ".txt");
     if (!file.is_open())
       cerr << "Error: Unable to open file";
     else {
@@ -131,8 +163,7 @@ int main() {
     int option = 0;
     cout << endl << "Type a valid option number -> ";
     cin >> option;
-    cin.ignore(numeric_limits<streamsize>::max(),
-               '\n'); // INFO:Clear the input buffer (suggested by AI)
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
     switch (option) {
     case 1:
@@ -162,5 +193,5 @@ int main() {
   }
   return 0;
 }
-// TODO:Add Error Handling, Reuse deleted UID, Add specific headers instead,
+// TODO:Add more error handling, Add specific headers instead,
 // Modularize code instead of mono repo
