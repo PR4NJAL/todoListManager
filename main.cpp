@@ -70,24 +70,28 @@ public:
     ofstream file;
     int index = 0;
 
-    if (pq.empty()) {
-      file.open("./content/" + to_string(map.size()) + ".txt");
-      index = map.size();
-    } else {
-      file.open("./content/" + to_string(pq.top()) + ".txt");
-      index = pq.top();
-      pq.pop();
-    }
+    try {
+      if (pq.empty()) {
+        file.open("./content/" + to_string(map.size()) + ".txt");
+        index = map.size();
+      } else {
+        file.open("./content/" + to_string(pq.top()) + ".txt");
+        index = pq.top();
+        pq.pop();
+      }
 
-    if (!file.is_open())
-      cerr << "Error: Unable to open file";
-    else {
-      file << content;
-      map[index].first = content;
-      map[index].second = false;
-      cout << endl << "Succesfully added the new task" << endl << endl;
+      if (!file.is_open())
+        throw runtime_error("Unable to open file");
+      else {
+        file << content;
+        map[index].first = content;
+        map[index].second = false;
+        cout << endl << "Succesfully added the new task" << endl << endl;
+      }
+      file.close();
+    } catch (const exception &e) {
+      cerr << "Error in addTask: " << e.what() << endl;
     }
-    file.close();
   }
 
   void printTasks() {
@@ -109,20 +113,23 @@ public:
     int uid;
     cin >> uid;
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    
+    try {
+      if (map.find(uid) == map.end()) {
+        throw runtime_error("UID does not exist.");
+      }
 
-    if (map.find(uid) == map.end()) {
-      cerr << "Error: UID does not exist." << endl;
-      return;
-    }
-
-    int status = remove(("./content/" + to_string(uid) + ".txt").c_str());
-    if (status != 0)
-      cerr << "Error deleting task";
-    else {
-      string content = map[uid].first;
-      map.erase(uid);
-      pq.push(uid); // Add to the priority queue
-      cout << endl << "Succesfully deleted task: " << endl << content << endl;
+      int status = remove(("./content/" + to_string(uid) + ".txt").c_str());
+      if (status != 0)
+        throw runtime_error("Error deleting task file.");
+      else {
+        string content = map[uid].first;
+        map.erase(uid);
+        pq.push(uid);
+        cout << endl << "Succesfully deleted task: " << endl << content << endl;
+      }
+    } catch (const exception &e) {
+      cerr << "Error int deletTask: " << e.what() << endl;
     }
   }
 
@@ -133,72 +140,79 @@ public:
     int uid;
     cin >> uid;
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    try {
+      if (map.find(uid) == map.end()) {
+        throw runtime_error("UID does not exist.");
+      }
 
-    if (map.find(uid) == map.end()) {
-      cerr << "Error: UID does not exist." << endl;
-      return;
+      cout << "Please type in new task content -> ";
+      string content;
+      getline(cin, content);
+
+      ofstream file;
+      file.open("./content/" + to_string(uid) + ".txt");
+      if (!file.is_open())
+        throw runtime_error("Unable to open the file for editing");
+      else {
+        file << content;
+        map[uid].first = content;
+        map[uid].second = false;
+        cout << endl << "Succesfully edited task: " << endl << content << endl;
+      }
+      file.close();
+    } catch (const exception &e) {
+      cerr << "Error in editTask: " << e.what() << endl;
     }
-
-    cout << "Please type in new task content -> ";
-    string content;
-    getline(cin, content);
-
-    ofstream file;
-    file.open("./content/" + to_string(uid) + ".txt");
-    if (!file.is_open())
-      cerr << "Error: Unable to open file";
-    else {
-      file << content;
-      map[uid].first = content;
-      map[uid].second = false;
-      cout << endl << "Succesfully edited task: " << endl << content << endl;
-    }
-    file.close();
   }
 };
 
 int main() {
-  TaskList newTaskList;
+  try {
+    TaskList newTaskList;
 
-  while (1) {
-    cout << "TASK MANAGER" << endl
-         << "Please choose an operation option" << endl
-         << "1: View your tasks" << endl
-         << "2: Add a new task" << endl
-         << "3: Delete a task" << endl
-         << "4: Edit a task" << endl;
+    while (1) {
+      cout << "TASK MANAGER" << endl
+          << "Please choose an operation option" << endl
+          << "1: View your tasks" << endl
+          << "2: Add a new task" << endl
+          << "3: Delete a task" << endl
+          << "4: Edit a task" << endl;
 
-    int option = 0;
-    cout << endl << "Type a valid option number -> ";
-    cin >> option;
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+      int option = 0;
+      cout << endl << "Type a valid option number -> ";
+      cin >> option;
+      cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-    switch (option) {
-    case 1:
-      cout << endl << "You chose to view your tasks" << endl << endl;
-      newTaskList.printTasks();
-      break;
-    case 2:
-      cout << endl << "You chose to add a new task" << endl << endl;
-      newTaskList.addTask();
-      break;
-    case 3:
-      cout << endl << "You chose to delete a task" << endl << endl;
-      newTaskList.deleteTask();
-      break;
-    case 4:
-      cout << endl << "You chose to edit a task" << endl << endl;
-      newTaskList.editTask();
-      break;
-    default:
-      cout << endl
-           << "You chose an invalid option...Please try again" << endl
-           << endl;
+      switch (option) {
+      case 1:
+        cout << endl << "You chose to view your tasks" << endl << endl;
+        newTaskList.printTasks();
+        break;
+      case 2:
+        cout << endl << "You chose to add a new task" << endl << endl;
+        newTaskList.addTask();
+        break;
+      case 3:
+        cout << endl << "You chose to delete a task" << endl << endl;
+        newTaskList.deleteTask();
+        break;
+      case 4:
+        cout << endl << "You chose to edit a task" << endl << endl;
+        newTaskList.editTask();
+        break;
+      default:
+        cout << endl
+            << "You chose an invalid option...Please try again" << endl
+            << endl;
+      }
+      cout << "--------------------------------------------------------------"
+          << endl
+          << endl;
     }
-    cout << "--------------------------------------------------------------"
-         << endl
-         << endl;
+  } catch (const exception &e) {
+    cerr << "Fatal error: " << e.what() << endl;
+    return -1;
   }
   return 0;
 }
-// TODO:Add more error handling, Modularize code instead of mono repo
+// TODO: Modularize code instead of mono repo, Add support for task completion -> editTask fn
